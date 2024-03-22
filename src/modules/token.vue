@@ -1,0 +1,58 @@
+<template>
+  <p>
+    <el-button type="primary" @click="handleGetToken()">获取Token</el-button>
+    <el-button type="primary" @click="creatOssClient()">创建阿里云oss实例对象</el-button>
+    <el-upload style="display: inline-block;margin-left: 10px;" multiple :file-list="fileList" action="" :show-file-list="false" :auto-upload="false" :on-change="handleChange">
+      <el-button type="primary">点击上传(文件多时需要耐心等待,建议通过控制台查看上传进度)</el-button>
+    </el-upload>
+  </p>
+  <p>{{ tokenBody }}</p>
+</template>
+<script setup>
+import { ref } from 'vue'
+import OSS from 'ali-oss'
+import { getToken } from '../api/token.js'
+import { tokenBody, storeRootPath, ossClient, callbackParam, uploadFileListResponse } from '../store/state.js'
+
+const fileList = ref([])
+
+const handleGetToken = async () => {
+  const res = await getToken()
+  ElMessage.success('token获取成功')
+  tokenBody.value = res
+  callbackParam.value = res.callbackParam
+  storeRootPath.value = res.storePath.slice(0, res.storePath.lastIndexOf('/{fileName}'));  // 文件上传路径
+  // console.log('Token',res);
+}
+
+const creatOssClient = () => {
+  if (!tokenBody.value) {
+    return ElMessage.warning('请先获取token')
+  }
+  ossClient.value = new OSS({
+    region: tokenBody.value.region, // 示例：'oss-cn-hangzhou'，填写Bucket所在地域。
+    accessKeyId: tokenBody.value.accessKeyID, // 确保已设置环境变量OSS_ACCESS_KEY_ID。
+    accessKeySecret: tokenBody.value.secretAccessKey, // 确保已设置环境变量OSS_ACCESS_KEY_SECRET。
+    bucket: tokenBody.value.cloudBucketName, // 示例：'my-bucket-name'，填写存储空间名称。
+    stsToken: tokenBody.value.sessionToken,
+    storePath: tokenBody.value.storePath
+  });
+  ElMessage.success('ossClient创建成功')
+  // console.log('OssClient',ossClient.value);
+}
+
+const handleChange = async (e) => {
+  if(!ossClient.value){
+    return ElMessage.warning('请先创建ossClient')
+  }
+  const res = await ossClient.value.put(`${storeRootPath.value}/${e.name}`, e.raw);
+  console.log(res);
+  // 存储下上传成功后的信息，后面关联resource需要用到
+  uploadFileListResponse.value.push({
+    name: e.name,
+    meta: 'jpg',
+    etag: res.res.headers.etag,
+    checksum: res.res.headers.etag,
+  })
+}
+</script>
