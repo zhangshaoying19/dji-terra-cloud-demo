@@ -2,7 +2,8 @@
   <p>
     <el-button type="primary" @click="handleGetToken()">获取Token</el-button>
     <el-button type="primary" @click="creatOssClient()">创建阿里云oss实例对象</el-button>
-    <el-upload style="display: inline-block;margin-left: 10px;" multiple :file-list="fileList" action="" :show-file-list="false" :auto-upload="false" :on-change="handleChange">
+    <el-upload style="display: inline-block;margin-left: 10px;" multiple :file-list="fileList" action=""
+      :show-file-list="false" :auto-upload="false" :on-change="handleChange">
       <el-button type="primary">点击上传(文件多时需要耐心等待,建议通过控制台查看上传进度)</el-button>
     </el-upload>
   </p>
@@ -41,18 +42,56 @@ const creatOssClient = () => {
   // console.log('OssClient',ossClient.value);
 }
 
-const handleChange = async (e) => {
-  if(!ossClient.value){
+let timer = null
+
+const handleChange =  (e, aaa) => {
+  if (!ossClient.value) {
     return ElMessage.warning('请先创建ossClient')
   }
-  const res = await ossClient.value.put(`${storeRootPath.value}/${e.name}`, e.raw);
-  console.log(res);
-  // 存储下上传成功后的信息，后面关联resource需要用到
-  uploadFileListResponse.value.push({
-    name: e.name,
-    meta: 'jpg',
-    etag: res.res.headers.etag,
-    checksum: res.res.headers.etag,
+  fileList.value.push(e)
+  if (timer) {
+    clearTimeout(timer)
+  }
+  timer = setTimeout(() => {
+    clearTimeout(timer)
+    timer = null
+    startUpload()
+  }, 3000)
+}
+
+let uploadIdx = 0
+
+const startUpload = async() => {
+  uploadFile(fileList.value[uploadIdx]).then(res=>{
+    if(uploadIdx === fileList.value.length - 1){
+      ElMessage.success('文件上传成功')
+    }else{
+      uploadIdx++
+    startUpload()
+    }
+  }).catch(()=>{
+      handleGetToken().then(()=>{
+        creatOssClient()
+        startUpload()
+      })
+  })
+}
+
+const uploadFile = (e) => {
+  return new Promise((resolve, reject) => {
+    ossClient.value.put(`${storeRootPath.value}/${e.name}`, e.raw).then(res => {
+      // console.log(res);
+      // 存储下上传成功后的信息，后面关联resource需要用到
+      uploadFileListResponse.value.push({
+        name: e.name,
+        meta: 'jpg',
+        etag: res.res.headers.etag,
+        checksum: res.res.headers.etag,
+      })
+      resolve(res)
+    }).catch((err) => {
+      reject(err)
+    })
   })
 }
 </script>
