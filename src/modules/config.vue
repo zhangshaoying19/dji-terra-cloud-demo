@@ -6,5 +6,5 @@
     <el-input class="el-input-custom" placeholder="请输入在大疆智图申请的DJI_SECRET_KEY" v-model="DJI_SECRET_KEY" />
 </template>
 <script setup>
-import {DJI_APP_KEY,DJI_SECRET_KEY} from '../store/state.js'
+import {DJI_APP_KEY,DJI_SECRET_KEY} from '../js/state.js'
 </script>

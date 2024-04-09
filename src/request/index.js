@@ -1,6 +1,6 @@
 import axios from 'axios'
 import CryptoJS from 'crypto-js'
-import { DJI_APP_KEY, DJI_SECRET_KEY } from '../store/state'
+import { DJI_APP_KEY, DJI_SECRET_KEY } from '../js/state'
 import { ElMessage } from 'element-plus'
 
 /*
