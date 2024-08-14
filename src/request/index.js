@@ -31,6 +31,17 @@ function objectToUrlParmasString(params) {
   return `?${paramsUrl}`
 }
 
+
+function filterNullUndefined(obj) {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+}
+
+
 export const request = async ({
   url,
   httpMethod = 'post',
@@ -42,9 +53,11 @@ export const request = async ({
     ElMessage.error('请先配置APPKEY和APPSECRET')
     return Promise.reject()
   }
+  // const filterData = filterNullUndefined(data)
   const URL = `/terra-rescon-be${url}${httpMethod === 'get' ? objectToUrlParmasString(data) : ''}`;
   const xDate = new Date().toUTCString();
   const payloadString = JSON.stringify(data);
+  console.log(payloadString);
   const utf8Payload = CryptoJS.enc.Utf8.parse(payloadString);
   const sha256Payload = CryptoJS.SHA256(utf8Payload);
   const digest = CryptoJS.enc.Base64.stringify(sha256Payload);
@@ -57,13 +70,13 @@ export const request = async ({
       method: httpMethod,
       baseURL: 'api/',
       headers: {
-        'x-date': xDate,  // 官方使用的Date,但在浏览器中Date是请求头关键词，不能手动配置，所以使用其他名称，需注意要和前面加密时保证名称一样
+        'X-Date': xDate,  // 官方使用的Date,但在浏览器中Date是请求头关键词，不能手动配置，所以使用其他名称，需注意要和前面加密时保证名称一样
         'Digest': `SHA-256=${digest}`,
         'Authorization': authorization,
         'Content-Type': contentType,
-        ...headers
+        ...headers,
       },
-      data: JSON.stringify(data)
+      data: payloadString
     }).then(res => {
       resolve(res.data.data)
     }).catch((err) => {

@@ -45,40 +45,15 @@ const handleGetResourcesInfo = async () => {
   console.log('查询的reource信息', res);
 }
 
-const handleCorrelation = async () => {
-  if (!selectResourceUUID.value) {
-    return ElMessage.warning('请选择resource，如果没有先创建')
-  }
-  if (uploadFileListResponse.value.length === 0) {
-    return ElMessage.warning('没有上传文件，请先上传文件')
-  }
-
-  // 这里使用循环关联是因为resource一次关联过多文件会报错
-
-  const arr = chunkArray(uploadFileListResponse.value, 16)
-  let idx = 0
-
-  const loop = (files) => {
-    relevanceFile(files).then(() => {
-      idx++
-      if (idx <= arr.length - 1) {
-        loop(arr[idx])
-      } else {
-        ElMessage.success('关联成功！')
-      }
-    })
-  }
-  loop(arr[idx])
-}
-
-const relevanceFile = (files) => {
+const relevanceFile = () => {
   return new Promise((resolve, reject) => {
     getUploadCallBack({
       // 这三个参数为必传项
       callbackParam: callbackParam.value,
       resourceUUID: selectResourceUUID.value,
-      files: files
+      files: uploadFileListResponse.value
     }).then(res => {
+      uploadFileListResponse.value = []
       resolve(res)
     }).catch(err => {
       reject(err)
@@ -86,17 +61,10 @@ const relevanceFile = (files) => {
   })
 }
 
-function chunkArray(array, chunkSize) {
-  return Array.from(
-    Array(Math.ceil(array.length / chunkSize)),
-    (_, index) => array.slice(index * chunkSize, index * chunkSize + chunkSize)
-  );
-}
-
 export {
   handleGetResourcesList,
   handleDeleteResource,
   handleCreateResource,
   handleGetResourcesInfo,
-  handleCorrelation
+  relevanceFile
 }

@@ -1,10 +1,12 @@
 import { getFileList, getFileInfo } from '../api/file'
 import { ElMessage } from 'element-plus'
+import { seletFileUUID, allResourceFlieList, selectResourceUUID } from './state.js'
 
 const handleGetFileList = async () => {
   const res = await getFileList({  // 参数自行配置
     rows: 1000,
     page: 1,
+    resourceUuid: selectResourceUUID.value
   })
   // console.log(res);
   ElMessage.success('获取File列表成功')

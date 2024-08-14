@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 
-const DJI_APP_KEY = ref('Cs9VltYlQevdy5gJV78PH')
-const DJI_SECRET_KEY = ref('9L7wIfDNaRR2VTt3RPpB3G0KL6VvnT1s')
+const DJI_APP_KEY = ref('')
+const DJI_SECRET_KEY = ref('')
 const tokenBody = ref()
 const storeRootPath = ref('')
 const callbackParam = ref('')

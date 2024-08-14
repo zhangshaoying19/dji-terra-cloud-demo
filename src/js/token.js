@@ -1,7 +1,8 @@
 import OSS from 'ali-oss'
 import { ElMessage } from 'element-plus'
 import { getToken } from '../api/token.js'
-import { storeRootPath, ossClient, callbackParam, uploadFileListResponse, fileList, tokenBody } from './state.js'
+import { storeRootPath, ossClient, callbackParam, uploadFileListResponse, fileList, tokenBody, selectResourceUUID } from './state.js'
+import { relevanceFile } from './resource.js'
 
 const handleGetToken = async () => {
   const res = await getToken()
@@ -24,16 +25,13 @@ const creatOssClient = () => {
     stsToken: tokenBody.value.sessionToken,
     storePath: tokenBody.value.storePath
   });
-  ElMessage.success('ossClient创建成功')
+  // ElMessage.success('ossClient创建成功')
   // console.log('OssClient',ossClient.value);
 }
 
 let timer = null
 
-const handleChange = (e, aaa) => {
-  if (!ossClient.value) {
-    return ElMessage.warning('请先创建ossClient')
-  }
+const handleChange = (e) => {
   fileList.value.push(e)
   if (timer) {
     clearTimeout(timer)
@@ -46,12 +44,30 @@ const handleChange = (e, aaa) => {
 }
 
 let uploadIdx = 0
+const MAX_UPLOAD_NUM = 16    // 一次性上传、关联很多文件都会报错，所以对图片文件分批上传、合并
 
 const startUpload = async () => {
-  uploadFile(fileList.value[uploadIdx]).then(res => {
-    // console.log(res);
-    if (uploadIdx === fileList.value.length - 1) {
-      ElMessage.success('文件上传成功')
+  if (!selectResourceUUID.value) {
+    return ElMessage.warning('请选择resource，如果没有先创建')
+  }
+  if (!ossClient.value) {
+    creatOssClient()
+  }
+  uploadFile(fileList.value[uploadIdx]).then(_res => {
+    console.log(_res);
+    if (uploadIdx === MAX_UPLOAD_NUM || uploadIdx === fileList.value.length - 1) {
+      relevanceFile().then(() => {
+        fileList.value.splice(0, MAX_UPLOAD_NUM)
+        uploadIdx = 0
+        if (fileList.value.length === 0) {
+          ElMessage.success('文件上传完成')
+        } else {
+          handleGetToken().then(() => {
+            // creatOssClient()
+            startUpload()
+          })
+        }
+      })
     } else {
       uploadIdx++
       startUpload()
