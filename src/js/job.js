@@ -47,11 +47,9 @@ const handleStartJob = async () => {
     return ElMessage.warning('请选择一个resource')
   }
   const res = await jobStart({   //  返回一个Job 实例对象 包含所有job信息
-    // uuid: selectJobUUID.value,
-    uuid: '5260c984-fa12-4411-81ce-cf9d7ae5dbbc',
+    uuid: selectJobUUID.value,
     data: {
-      // resourceUuid: selectResourceUUID.value,
-      resourceUuid: '1d2c4760-25ed-46e0-971c-69088b5b4e01',
+      resourceUuid: selectResourceUUID.value,
       type: 15,   // 2D：14   3D: 15   LiDAR：13
       // parameters: "{\"parameter\": {\"output_mesh\": true,\"generate_obj\": true,\"generate_b3dm\": true,\"generate_osgb\": true,\"output_geo_desc\": {\"cs_type\": \"GEO_CS\",\"geo_cs\": \"EPSG:4326\",\"override_vertical_cs\": \"EPSG:5773\"}}}"   // 必须为字符串
       // "parameters": "{\"parameter\":{\"output_mesh\":true,\"generate_obj\":true,\"generate_b3dm\":true,\"generate_osgb\":true}}"
