@@ -54,7 +54,6 @@ const startUpload = async () => {
     creatOssClient()
   }
   uploadFile(fileList.value[uploadIdx]).then(_res => {
-    console.log(_res);
     if (uploadIdx === MAX_UPLOAD_NUM || uploadIdx === fileList.value.length - 1) {
       relevanceFile().then(() => {
         fileList.value.splice(0, MAX_UPLOAD_NUM)

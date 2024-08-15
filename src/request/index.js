@@ -57,7 +57,6 @@ export const request = async ({
   const URL = `/terra-rescon-be${url}${httpMethod === 'get' ? objectToUrlParmasString(data) : ''}`;
   const xDate = new Date().toUTCString();
   const payloadString = JSON.stringify(data);
-  console.log(payloadString);
   const utf8Payload = CryptoJS.enc.Utf8.parse(payloadString);
   const sha256Payload = CryptoJS.SHA256(utf8Payload);
   const digest = CryptoJS.enc.Base64.stringify(sha256Payload);
@@ -69,6 +68,7 @@ export const request = async ({
     axios(URL, {
       method: httpMethod,
       baseURL: 'api/',
+      timeout: 3 * 60 * 1000,
       headers: {
         'X-Date': xDate,  // 官方使用的Date,但在浏览器中Date是请求头关键词，不能手动配置，所以使用其他名称，需注意要和前面加密时保证名称一样
         'Digest': `SHA-256=${digest}`,

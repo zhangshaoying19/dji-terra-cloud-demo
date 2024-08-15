@@ -68,7 +68,7 @@ const handleGetOutRescourceInfo = async () => {
     uuid: outputResourceUuid.value
   })
   // console.log(res);
-  // outFileUUIds = res.fileUuids.slice(0,9)
+  ElMessage.success('获取输出资源信息成功')
   outFileUUIds.value = res.fileUuids
 }
 
@@ -77,7 +77,8 @@ const getFile = (url) => {
     axios({
       method: "get",
       url,
-      responseType: "blob"
+      responseType: "blob",
+      timeout: 3 * 60 * 1000
     }).then(data => {
       resolve(data.data);
     }).catch(error => {
@@ -87,28 +88,21 @@ const getFile = (url) => {
 }
 
 
-const downLoad = (data) => {
+const downLoad = (blobList) => {
   const zip = new JSZip();
-  const cache = {};
-  const promises = [];
-  data.forEach(item => {
-    const promise = getFile(item.url).then(data => {
-      // // 下载文件, 并存成ArrayBuffer对象
-      zip.file(item.name, data, { binary: true }); // 逐个添加文件
-      cache[item.name] = data;
-    });
-    promises.push(promise);
+  blobList.forEach(item => {
+    if (item.status === "fulfilled") {
+      zip.file(item.value.name, item.value.data, { binary: true }); // 逐个添加文件
+    }
   });
-  Promise.all(promises).then(() => {
-    zip.generateAsync({
-      type: "blob", compression: 'DEFLATE',  // STORE: 默认不压缩， DEFLATE：需要压缩
-      compressionOptions: {
-        level: 9          // 压缩等级 1~9   1 压缩速度最快， 9 最优压缩方式
-      }
-    }).then(content => {
-      // 生成二进制流
-      FileSaver.saveAs(content, "智图生成结果.zip"); // 利用file-saver保存文件  自定义文件名
-    });
+  zip.generateAsync({
+    type: "blob", compression: 'DEFLATE',  // STORE: 默认不压缩， DEFLATE：需要压缩
+    compressionOptions: {
+      level: 9          // 压缩等级 1~9   1 压缩速度最快， 9 最优压缩方式
+    }
+  }).then(content => {
+    // 生成二进制流
+    FileSaver.saveAs(content, "智图生成结果.zip"); // 利用file-saver保存文件  自定义文件名
   });
 }
 
@@ -116,16 +110,24 @@ const handleDownLoadFile = () => {
   if (outFileUUIds.value.length === 0) {
     return ElMessage.warning('请先点击《获取输出资源信息》的按钮')
   }
-  const outFileInfosPromise = outFileUUIds.value.map(async (item) => {
-    const info = await getFileInfo({
-      uuid: item
-    })
-    return info
-  })
-  Promise.all(outFileInfosPromise).then(res => {
-    console.log(res);
-    downLoad(res)
-  })
+  performRequests(outFileUUIds.value).then(res => downLoad(res))
+}
+
+async function performRequests(array) {
+  const promises = array.map(async (item) => {
+    try {
+      const firstResponse = await getFileInfo({ uuid: item });
+      const secondResponse = await getFile(firstResponse.url);
+      return {
+        ...firstResponse,
+        data: secondResponse
+      };
+    } catch (error) {
+      console.error(`Error processing item ${item}:`, error);
+      throw error;
+    }
+  });
+  return Promise.allSettled(promises);
 }
 
 const handleDeleteJob = async () => {
