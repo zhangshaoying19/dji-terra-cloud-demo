@@ -51,9 +51,8 @@ const handleStartJob = async () => {
     data: {
       resourceUuid: selectResourceUUID.value,
       type: 15,   // 2D：14   3D: 15   LiDAR：13
-      // parameters: "{\"parameter\": {\"output_mesh\": true,\"generate_obj\": true,\"generate_b3dm\": true,\"generate_osgb\": true,\"output_geo_desc\": {\"cs_type\": \"GEO_CS\",\"geo_cs\": \"EPSG:4326\",\"override_vertical_cs\": \"EPSG:5773\"}}}"   // 必须为字符串
-      // "parameters": "{\"parameter\":{\"output_mesh\":true,\"generate_obj\":true,\"generate_b3dm\":true,\"generate_osgb\":true}}"
-      "parameters": "{\"parameter\":{\"output_mesh\":true,\"generate_obj\":true,\"generate_b3dm\":true,\"generate_osgb\":true}}",
+      //  parameters: "{\"parameter\":{\"output_geo_desc\":{\"cs_type\":\"GEO_CS\",\"geo_cs\":\"EPSG:4326\",\"geo_cs_wkt\":\"\",\"override_vertical_cs\":\"\"},\"map_mode\":1}}",
+      parameters: "{\"parameter\":{\"output_geo_desc\":{\"cs_type\":\"GEO_CS\",\"geo_cs\":\"EPSG:4326\",\"geo_cs_wkt\":\"\",\"override_vertical_cs\":\"\"},\"model_simplify\":0.2}}"
     }
   })
   // console.log(res);
