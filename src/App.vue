@@ -12,7 +12,7 @@ const activeName = ref('config')
   <div class="view">
     <h2>这个是 前端网页端 调用 大疆智图开放api 的简单用例(在实际业务开发中仅供参考)</h2>
     <p>
-      <a href="https://github.com/zhangshaoying19/dji-terra-cloud-demo/blob/63f4a75412da108f7b6380d22f4d3ff97e67cae0/README.md"
+      <a href="https://github.com/zhangshaoying19/dji-terra-cloud-demo/blob/main/README.md"
         target="_blank">使用说明</a>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <a href="https://developer.dji.com/doc/terra_api_tutorial/cn/quick-start.html" target="_blank">大疆智图开放文档</a>
