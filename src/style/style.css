@@ -1,0 +1,30 @@
+:root {
+  background-color: cornsilk;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+html,body{
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.view {
+  width: calc(100% - 40px);
+  height: calc(100% - 40px);
+  margin: 20px auto;
+}
+
+.el-input-custom{
+ max-width: 400px;
+}
