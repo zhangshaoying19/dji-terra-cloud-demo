@@ -1,14 +1,10 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import TablePro from '../components/TablePro/index.vue'
-import axios from 'axios'
-import JSZip from 'jszip'
-import FileSaver from 'file-saver'
 import { getJobList, createJob, jobStop, deleteJob, getJobInfo, jobStart } from '../api/job'
-import { ElMessageBox,ElMessage,ElLoading } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import Resource from './resource.vue'
-import { getRecourceInfo } from '../api/resource'
-import { getFileInfo } from '../api/file'
+import { handleDownload } from './tools'
 
 
 const columns = ref([
@@ -266,89 +262,6 @@ const handleTypeChange = (val) => {
         form.value.parameters = '{\"parameter\":{\"output_geo_desc\":{\"cs_type\":\"GEO_CS\",\"geo_cs\":\"EPSG:4326\",\"geo_cs_wkt\":\"\",\"override_vertical_cs\":\"\"},\"model_simplify\":0.2}}'
     }
 }
-
-const getFile = (url) => {
-    return new Promise((resolve, reject) => {
-        axios({
-            method: "get",
-            url,
-            responseType: "blob",
-            timeout: 900000
-        }).then(data => {
-            resolve(data.data);
-        }).catch(error => {
-            reject(error.toString());
-        });
-    });
-}
-
-let blobList = []
-let fileIidx = 0
-let fileUuids = []
-let loadingInstance = null
-
-async function performRequests(idx, jobData) {
-    if (fileIidx < fileUuids.length - 1) {
-        try {
-            const firstResponse = await getFileInfo({ uuid: fileUuids[idx] });
-            const secondResponse = await getFile(firstResponse.url)
-            blobList.push({
-                ...firstResponse,
-                data: secondResponse
-            })
-        } catch (error) {
-            throw error;
-        }
-        finally {
-            fileIidx++
-            await performRequests(fileIidx, jobData)
-        }
-    } else {
-        await downLoad(jobData)
-    }
-}
-
-
-const downLoad = async (jobData) => {
-    const zip = new JSZip();
-    blobList.forEach(item => zip.file(item.name, item.data, { binary: true }));
-    zip.generateAsync({
-        type: "blob",
-        compression: 'STORE',  // STORE: 默认不压缩， DEFLATE：需要压缩
-        compressionOptions: {
-            level: 9,       // 压缩等级 1~9   1 压缩速度最快， 9 最优压缩方式
-        }
-    }).then(content => {
-        FileSaver.saveAs(content, `${jobData.name}.zip`);
-        ElMessage.success('下载完成')
-    }).finally(() => {
-        loadingInstance.close()
-        loadingInstance = null
-    })
-}
-
-const handleGetOutRescourceInfo = async (outputResourceUuid) => {
-    const res = await getRecourceInfo({
-        uuid: outputResourceUuid
-    })
-    // console.log(res);
-    return res.fileUuids
-}
-
-const handleDownload = async (data) => {
-    ElMessage.success('开始下载作业输出资源')
-    loadingInstance = ElLoading.service({
-        lock: true,
-        text: '下载中...',
-        background: 'rgba(0, 0, 0, 0.7)'
-    })
-    fileIidx = 0
-    blobList = []
-    fileUuids = []
-    fileUuids = await handleGetOutRescourceInfo(data.outputResourceUuid)
-    await performRequests(fileIidx, data)
-}
-
 </script>
 
 <template>
@@ -390,7 +303,7 @@ const handleDownload = async (data) => {
         <template #action="scope">
             <el-button type="primary" size="mini" @click="handleDetail(scope.row)">详情</el-button>
             <el-button type="success" v-if="scope.row.status == 6" size="mini"
-                @click="handleDownload(scope.row)" >下载</el-button>
+                @click="handleDownload(scope.row.outputResourceUuid, scope.row)">下载(重建结果)</el-button>
             <el-button type="warning" size="mini" @click="handleStart(scope.row)"
                 v-if="scope.row.status == 0">启动</el-button>
             <el-button v-if="scope.row.status < 4 && scope.row.status > 0" type="warning" size="mini"

@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import TablePro from '../components/TablePro/index.vue'
 import { getResourcesList, createResource, deleteResource, getRecourceInfo } from '../api/resource'
+import { handleDownload } from './tools'
 
 const props = defineProps({
     isSelect: {
@@ -158,7 +159,7 @@ const handleSelect = (data) => {
 
 <template>
     <TablePro :columns="columns" :data="tableData" @refresh="refreshTable" :loading="loading" :total="total"
-        ::current-page="searchParams.page" @current-change="handleCurrentChange" @reset="handleReset">
+        :current-page="searchParams.page" @current-change="handleCurrentChange" @reset="handleReset">
         <template #search>
             <div style="display: flex; gap: 10px;">
                 <el-input class="el-input-custom" placeholder="请输入搜索选项" v-model="searchParams.search" clearable />
@@ -184,6 +185,8 @@ const handleSelect = (data) => {
                 <el-button type="warning" size="mini" @click="handleSelect(scope.row)">选择</el-button>
             </template>
             <template v-else>
+                <el-button type="success" size="mini"
+                    @click="handleDownload(scope.row.uuid, scope.row)">下载(关联的文件)</el-button>
                 <el-button type="danger" size="mini" @click="handleDelete(scope.row)">删除</el-button>
             </template>
         </template>
